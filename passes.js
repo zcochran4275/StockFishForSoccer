@@ -609,7 +609,7 @@ const passesFormatted = reversedPasses.flatMap(
 const resultBox = document.getElementById("yamalChancexG");
 try {
   const response = await fetch(
-    "https://soccer-events-analyzed.onrender.com/predict",
+    "https://stockfishforsoccer.onrender.com/predict",
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -632,7 +632,7 @@ async function sendApiRequest(passesFormatted) {
   const resultBox = document.getElementById("yamalChancexG");
   try {
     const response = await fetch(
-      "https://soccer-events-analyzed.onrender.com/predict",
+      "https://stockfishforsoccer.onrender.com/predict",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -806,7 +806,7 @@ svg2
       );
       console.log(passesFormattedV2);
       const response = await fetch(
-        "https://soccer-events-analyzed.onrender.com/predict",
+        "https://stockfishforsoccer.onrender.com/predict",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

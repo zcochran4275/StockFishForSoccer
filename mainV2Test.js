@@ -464,7 +464,7 @@ document.getElementById("predictBtn").addEventListener("click", async () => {
   spinner.style.display = "block";
   try {
     const response = await fetch(
-      "https://soccer-events-analyzed.onrender.com/predict",
+      "https://stockfishforsoccer.onrender.com/predict",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -420,7 +420,7 @@ document.getElementById("predictBtn2").addEventListener("click", async () => {
   resultBox.innerText = "";
   try {
     const response = await fetch(
-      "https://soccer-events-analyzed.onrender.com/predict",
+      "https://stockfishforsoccer.onrender.com//predict",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
