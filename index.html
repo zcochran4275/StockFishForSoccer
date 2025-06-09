@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script type="module" src="mainV2Test.js"></script>
+    <!-- <script src="youtube.js"></script> -->
+    <script type="module" src="passes.js"></script>
+    <script type="module" src="learning.js"></script>
+    <script type="module" src="game2.js"></script>
+    <script type="module" src="crazyGraphSteps.js"></script>
+    <script type="module" src="leaderboard.js"></script>
+    <link rel="stylesheet" href="stylesv2.css" />
+    <link rel="stylesheet" href="goals/goals.css" />
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Stockfish for Soccer?</title>
+</head>
+
+<body>
+    <div class="intro">
+        <div class="overlay"></div>
+        <img src="assets/SB - Icon Lockup - Colour positive.png" class="statsbomb-image"></img>
+        <h1 class="title">Stockfish for Soccer?</h1>
+        <p class="subtitle">Passing in soccer has never been so easy.</p>
+        <p class="into-paragraph">We have invented a new metric for how to quantify performance during a soccer match. Pass sequence xG, is a metric that measures the quality of a team's passing sequences. We have created a machine learning model using XGBoost that can take in a sequence of
+            passes and predict the probability of a goal being scored involving those passes.
+            This model has been trained on data from 2015/2016 seasons across the 5 biggest european leagues (La Liga,
+            Premier League, Bundesliga, Serie A, and Ligue 1).
+            The model has been extensively trained on 1823 games and resulted in 1.8 million passing sequences. In this
+            article we will use our model to analyze passing sequences from the 2024 UEFA Euro Tournament.</p>
+    </div>
+
+    <div class="scrolly">
+        <div class='graphic'>
+            <div class="graphic-item" id="graphic-item-1">
+                <div class="player"></div>
+            </div>
+            <div class="graphic-item" id="graphic-item-2">
+                <svg id="pitch1" width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+            <div class="graphic-item" id="graphic-item-3">
+                <svg id="pitch2" width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+            <div class="graphic-item" id="graphic-item-4">
+                <!--if you move this step you must change the index in the scrollama on step or else the graphs will not show-->
+                <div id="bar-chart"></div>
+                <div id="bar-chart-legend"></div>
+                <div id='pie-chart'></div>
+            </div>
+            <div class="graphic-item" id="graphic-item-5">
+                <div id="main-container">
+                    <div class="canvas-container">
+                        <canvas id="pitchCanvas" width="720" height="480"></canvas>
+                    </div>
+                    <p>Select a pass type and height for each pass. Hover over each selection to see more details.</p>
+                    <div id="controls">
+                        <label for="passType">Select Pass Type:</label>
+                        <select id="passType" name="passType">
+                            <option value="normal" data-tooltip="A standard pass. Can be anywhere on the pitch.">Normal
+                                Pass</option>
+                            <option value="Cross"
+                                data-tooltip="A pass generally played from the side of the pitch into the penalty area.">
+                                Cross</option>
+                            <option value="Through Ball"
+                                data-tooltip="A pass that is played into space behind defenders.">Through Ball</option>
+                            <option value="Cut-back"
+                                data-tooltip="A pass played from the endline back towards the middle of the box.">Cut
+                                Back</option>
+                            <option value="Switch"
+                                data-tooltip="A pass that is played across the pitch from one side to another.">Switch
+                            </option>
+                            <option value="Throw-in"
+                                data-tooltip="A pass from the sideline that starts a play after the ball has gone out.">
+                                Throw-in</option>
+                            <option value="Corner"
+                                data-tooltip="A pass that generally goes from the corner into the box.">Corner</option>
+                            <option value="Free Kick"
+                                data-tooltip="A method of restarting play after a foul, can be from anywhere.">Free Kick
+                            </option>
+                            <option value="Goal Kick"
+                                data-tooltip="A method of restarting play after the ball has gone out of bounds. Taken from inside a team's own 6-yard box. Generally played high and far.">
+                                Goal Kick</option>
+                        </select>
+
+                        <label for="passHeight">Select Pass Height:</label>
+                        <select id="passHeight" name="passHeight">
+                            <option value="Ground" data-tooltip="A pass that is played along the ground.">Ground Pass
+                            </option>
+                            <option value="Low" data-tooltip="A pass that is played generally below the chest.">Low Pass
+                            </option>
+                            <option value="High" data-tooltip="A pass that is played higher in the air.">High Pass
+                            </option>
+                        </select>
+
+                        <button id="undoBtn">Undo last pass</button>
+                        <button id="predictBtn">Predict Play Probability</button>
+                    </div>
+                    <div id="prediction-container">
+                        <svg id="circleChart" width="200" height="200"></svg>
+                        <p id="predictionResult"></p>
+                        <div id="loadingSpinner" class="spinner" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="graphic-item" id="graphic-item-6">
+                <div class="chart chart-top-left"></div> <!-- First chart (e.g., Stacked Bar) -->
+            </div>
+            <div class="graphic-item" id="graphic-item-7">
+                <div class="chart chart-bottom-right"></div> <!-- Second chart (e.g., Prediction Bar) -->
+
+            </div>
+
+            <div class="graphic-item" id="graphic-item-8">
+                <div id="heatmap"></div>
+                <script src="goals/goals.js"></script>
+            </div>
+            <div class="graphic-item" id="graphic-item-9">
+                <h2>All Final Passes in Sequence From 2024 UEFA Euro Tournament With a Pass Sequence xG below 10th
+                    percentile.</h2>
+                <div id="heatmap-containerStep1" style="display: flex; align-items: flex-start;">
+                    <svg id="pitch5Step1" width="900" height="600" viewBox="0 0 120 80"
+                        preserveAspectRatio="xMidYMid meet"></svg>
+                    <svg id="legendStep1" width="150" height="400"></svg>
+                </div>
+                <svg id='pitch4Step1' width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+
+                <button id="toggle-heatmapStep1" class="toggle-heatmap">Show Passmap</button>
+
+                <div id="pie-containers">
+                    <div id="pass-type-pie-chartStep1"></div>
+                    <div id="pass-height-pie-chartStep1"></div>
+                </div>
+            </div>
+            <div class="graphic-item" id="graphic-item-10">
+                <h2>All Final Passes in Sequence From 2024 UEFA Euro Tournament With a Pass Sequence xG between 30th and
+                    40th percentile.</h2>
+                <div id="heatmap-containerStep2" style="display: flex; align-items: flex-start;">
+                    <svg id="pitch5Step2" width="900" height="600" viewBox="0 0 120 80"
+                        preserveAspectRatio="xMidYMid meet"></svg>
+                    <svg id="legendStep2" width="150" height="400"></svg>
+                </div>
+                <svg id='pitch4Step2' width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+                <button id="toggle-heatmapStep2" class="toggle-heatmap">Toggle Passmap</button>
+                <div id="pie-containers">
+                    <div id="pass-type-pie-chartStep2"></div>
+                    <div id="pass-height-pie-chartStep2"></div>
+                </div>
+            </div>
+            <div class="graphic-item" id="graphic-item-11">
+                <h2>All Final Passes in Sequence From 2024 UEFA Euro Tournament With a Pass Sequence xG between 60th and
+                    70th percentile.</h2>
+                <div id="heatmap-containerStep3" style="display: flex; align-items: flex-start;">
+                    <svg id="pitch5Step3" width="900" height="600" viewBox="0 0 120 80"
+                        preserveAspectRatio="xMidYMid meet"></svg>
+                    <svg id="legendStep3" width="150" height="400"></svg>
+                </div>
+                <svg id='pitch4Step3' width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+                <button id="toggle-heatmapStep3" class="toggle-heatmap">Toggle Passmap</button>
+                <div id="pie-containers">
+                    <div id="pass-type-pie-chartStep3"></div>
+                    <div id="pass-height-pie-chartStep3"></div>
+                </div>
+            </div>
+            <div class="graphic-item" id="graphic-item-12">
+                <h2>All Final Passes in Sequence From 2024 UEFA Euro Tournament With a Pass Sequence xG higher than the
+                    90th percentile.</h2>
+                <div id="heatmap-containerStep4" style="display: flex; align-items: flex-start;">
+                    <svg id="pitch5Step4" width="900" height="600" viewBox="0 0 120 80"
+                        preserveAspectRatio="xMidYMid meet"></svg>
+                    <svg id="legendStep4" width="150" height="400"></svg>
+                </div>
+                <svg id='pitch4Step4' width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+                <button id="toggle-heatmapStep4" class="toggle-heatmap">Toggle Passmap</button>
+                <div id="pie-containers">
+                    <div id="pass-type-pie-chartStep4"></div>
+                    <div id="pass-height-pie-chartStep4"></div>
+                </div>
+            </div>
+            <div class="graphic-item" id="graphic-item-13">
+                <div id="heatmap-container" style="display: flex; align-items: flex-start;">
+                    <svg id="pitch5" width="900" height="600" viewBox="0 0 120 80"
+                        preserveAspectRatio="xMidYMid meet"></svg>
+                    <svg id="legend" width="150" height="400"></svg>
+                </div>
+                <svg id='pitch4' width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+                <div id="controls-container">
+                    <div id="slider-container"></div>
+                    <div class="animation-controls">
+
+                        <button id="start-animation-btn">Start Slider Animation</button>
+                        <button id="pause-animation-btn">Pause Slider Animation</button>
+                        <button id="toggle-heatmap" class="toggle-heatmap">Toggle Heatmap</button>
+                    </div>
+                </div>
+                <div id="pie-containers">
+                    <div id="pass-type-pie-chart"></div>
+                    <div id="pass-height-pie-chart"></div>
+                    <svg id="accuracy-chart"></svg>
+                </div>
+            </div>
+            <div class="graphic-item" id="graphic-item-14">
+                <h2>The glory of a switch, through ball, cross!</h2>
+                <svg id="pitch6" width="900" height="600" viewBox="0 0 120 80"
+                    preserveAspectRatio="xMidYMid meet"></svg>
+            </div>
+            <div class="graphic-item" id="graphic-item-15">
+                <div id="pitch3-container">
+                    <h3 id="sequence-header"></h3>
+                    <svg id="pitch3" width="900" height="600" viewBox="0 0 120 80"
+                        preserveAspectRatio="xMidYMid meet"></svg>
+                </div>
+            </div>
+
+            <div class="graphic-item" id="graphic-item-16">
+                <div id="main-container">
+                    <div class="canvas-container">
+                        <canvas id="pitchCanvas2" width="720" height="480"></canvas>
+                    </div>
+                    <p>Select a pass type and height for each pass. Hover over each selection to see more details.</p>
+                    <div id="controls">
+                        <label for="passType">Select Pass Type:</label>
+                        <select id="passType2" name="passType">
+                            <option value="normal" data-tooltip="A standard pass. Can be anywhere on the pitch.">Normal
+                                Pass</option>
+                            <option value="Cross"
+                                data-tooltip="A pass generally played from the side of the pitch into the penalty area.">
+                                Cross</option>
+                            <option value="Through Ball"
+                                data-tooltip="A pass that is played into space behind defenders.">Through Ball</option>
+                            <option value="Cut-back"
+                                data-tooltip="A pass played from the endline back towards the middle of the box.">Cut
+                                Back</option>
+                            <option value="Switch"
+                                data-tooltip="A pass that is played across the pitch from one side to another.">Switch
+                            </option>
+                            <option value="Throw-in"
+                                data-tooltip="A pass from the sideline that starts a play after the ball has gone out.">
+                                Throw-in</option>
+                            <option value="Corner"
+                                data-tooltip="A pass that generally goes from the corner into the box.">Corner</option>
+                            <option value="Free Kick"
+                                data-tooltip="A method of restarting play after a foul, can be from anywhere.">Free Kick
+                            </option>
+                            <option value="Goal Kick"
+                                data-tooltip="A method of restarting play after the ball has gone out of bounds. Taken from inside a team's own 6-yard box.">
+                                Goal Kick</option>
+                        </select>
+
+                        <label for="passHeight">Select Pass Height:</label>
+                        <select id="passHeight2" name="passHeight">
+                            <option value="Ground" data-tooltip="A pass that is played along the ground.">Ground Pass
+                            </option>
+                            <option value="Low" data-tooltip="A pass that is played generally below the chest.">Low Pass
+                            </option>
+                            <option value="High" data-tooltip="A pass that is played higher in the air.">High Pass
+                            </option>
+                        </select>
+
+                        <button id="undoBtn2">Undo last pass</button>
+                        <button id="predictBtn2">Predict Play Probability</button>
+                    </div>
+                    <div id="prediction-container2">
+                        <p id="predictionResult2"></p>
+                        <div id="name-div" class="name-div">
+
+                            <input type="text" id="nameInput" placeholder="Enter your name">
+                            <button id="submitBtn">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="article">
+            <div class="step" id="step-1">
+                <h2>Lets start by looking at the goal of tournament. This goal was scored by Lamine Yamal in the 2024
+                    UEFA
+                    Euros Semi-Final between Spain and France. It was undoubtedly an incredible finish, but how good was
+                    the pass sequence that led to his shot?</h2>
+                <h2>In the next sections we will dive into this chance and see how we can use our model to analyze the
+                    pass sequence.</h2>
+                <img src="assets/uefa-euro-2024-logo.jpg" alt="UEFA Euro 2024 Logo"
+                    style="width: 50%; height: auto; border-radius: 20px;">
+            </div>
+            <div class="step" id="step-2">
+                <h2>How do we define a pass sequence?</h2> <br></br>
+                <h3>A pass sequence can be defined as a sequential list of passes where each pass has a set of features.
+                    Some of the features include start and end location, pass type, pass height.
+                    Using these features we can visually represent the sequence in 2D by plotting each pass as an arrow
+                    and making its size proportional to its position in the sequence. We can additionally color code the
+                    pass by it's outcome.</h3>
+                <h3>Try hovering over the passes to see more details!</h3>
+                <h3>If you would like a refresher on the different pass types, click <a href="#appendix" style="color: inherit;">here</a></h3>
+                <h2>What do you think is the probability that this pass sequence leads to a goal? Scroll to find out!
+                </h2>
+            </div>
+            <div class="step" id="step-3">
+                <h2 style="text-align: center" id="yamalChancexG">The probability of this pass sequence leading to a
+                    goal is Loading...
+                </h2>
+                <h3>From now on, we will be referring to this probability as pass sequence xG (expected goals). This
+                    probability is extremely low and is a testament to the ability of Lamine Yamal to create and finish
+                    a chance given a bad situation. However, let's look at how the pass sequence xG could change if a
+                    different pass was played.
+                    <br><br>
+                    Try clicking the different options to see how the pass sequence xG changes!
+                    <br></br>
+                    Does this match your intuition? What do you think was the best passing option for this play?
+                </h3>
+            </div>
+            <div class="step" id="step-4">
+                <h2 style="text-align: center">Now let's take a look at the how many goals each team was expected to
+                    score given their pass sequences.</h2>
+                <h3>As we can see, Spain ranks very highly at all stages of the tournament. This was likely a major
+                    contributor to their success, as they won the entire tournament!</h3>
+            </div>
+            <div class="step" id="step-5">
+                <h1 style="text-align: center;">Pass Sequence Game</h1>
+                <h2 style="text-align: center">Based on what you know so far, try out our pass sequence game and try to
+                    get the highest probability possible!</h2>
+                <br></br>
+                <h2>Instructions: </h2>
+                <h3>1. Select the pass type, pass height, and then click on the pitch to set the starting position of
+                    the ball.</h3>
+                <h3>2. Click again to set the end position of the pass.</h3>
+                <h3>3. Repeat steps 1 and 2 to create a sequence of passes.</h3>
+                <h3>4. Once you have created a sequence, click the "Predict Play Probability" button to see the
+                    probability of the pass sequence leading to a goal.</h3>
+                <h3>5. Repeat steps 1-4 to try to get the highest probability possible!</h3>
+                <h2>Compare your score to all the passing sequences in the Euros!</h2>
+            </div>
+            <div class="step" id="step-6">
+                <h2 style="text-align: center">Counter attacks have been a major talking point lately in soccer.
+                    A counter attack typically consists of gaining possession and making a short sequence of
+                    passes, usually 1-3, and then ending with a shot towards goal.
+                    Here we take a look at how the number of passes in a sequence affects the pass sequence xG.
+                </h2>
+                <h3>Although the actual difference in pass sequence xG is not very large, about .7%, we see that a pass
+                    sequence xG of around 2.5% is in the 75th percentile of pass sequence xG. While a pass sequence
+                    xG of around 1.8% is in the 55th percentile.</h3>
+
+                <h3>This is a huge difference of 20 percentile points! The context of the
+                    passes is important and sequences that have a solid build-up can set up a "last
+                    pass" in a good position to create a goal.</h3>
+                <h3>Build up is important!</h3>
+            </div>
+            <div class="step" id="step-7">
+                <h2 style="text-align: center">We've established that 5 passes is optimal. Now, we can take a look at
+                    the distribution of passes within those 5 pass
+                    sequences.</h2>
+                <h3>First thing that we can see is that goal kicks, free kicks, corners, and throw-ins all happen on the
+                    first pass of a sequence. This should match our intuition and general knowledge for how soccer
+                    works.
+                    <br></br>
+                    The next thing that is important to identify is the types of passes that can be labeled as sequence
+                    ending. We see that through balls, crosses, and cutbacks all tend to end sequences at least 50% of
+                    the time. We can attribute this to shots happening after each of these pass types.
+                    <br></br>
+                    If you don't know what a cross, cut back, switch, or through ball are, click <a href="#appendix" style="color: inherit;">here</a>
+                </h3>
+
+            </div>
+            <div class="step" id="step-8">
+                <h2 style="text-align: center">Take a look at this heatmap to see information about shots and goals!
+                </h2>
+                <h3>A majority of shots are taken from inside the box or just outside the 18-yard box, particularly from
+                    the central areas. Most goals are scored from inside the 18-yard box, with the highest xG coming
+                    from shots near the goal. </h3>
+                <h3>Combining this with the previous findings, we can see that the location and context of passes are
+                    crucial
+                    in determining their effectiveness. Through balls, crosses, and cutbacks are all sequence-ending
+                    passes
+                    that are played into dangerous areas. They often lead to shots on goal, and as a result,
+                    are more likely to result in high xG values.</h3>
+            </div>
+            <div class="step" id="step-9">
+                <h2 style="text-align: center">The final pass of a sequence is the most important in influencing the
+                    probability of a goal. In the next couple sections we will look at how the final pass of a sequence
+                    affect the pass sequence xG.</h2>
+                <h2>Here we are looking at the worst 10% of final passes from passing sequences in terms of pass
+                    sequence
+                    xG. First thing we can see is that almost all the passes are incomplete. This makes sense, as if a
+                    pass is incomplete it is not likely to lead to a goal.<br></br>
+                    We also see that a lot of these passes come from goal kicks, free kicks, and passes in the defensive
+                    third and tend to be longer and in the air. In general, these passes are very hard to control as the
+                    team in possession and are hard to create good goal scoring opportunities.
+                </h2>
+            </div>
+            <div class="step" id="step-10">
+                <h2 style="text-align: center">Now we are looking at the final passes of sequences that have a pass
+                    sequence xG between 30th and 40th percentile.
+                    This is around where we see that more of these passes are complete compared to the previous
+                    percentiles. <br></br> A lot of these final passes are still being completed in the defensive third
+                    which is why they might not have as high of a pass sequence xG.<br></br>
+                    Also, this is around the percentile where we begin to see some attempts at crossing. We see that
+                    even incomplete crosses into the box have the same pass sequence xG as a completed pass in the
+                    defensive third.
+                </h2>
+                <h2>It pays to get the ball into the box!</h2>
+            </div>
+            <div class="step" id="step-11">
+                <h2 style="text-align: center">As we increase the percentile of pass sequence xG for the final passes
+                    displayed to between 60th and 70th percentile, we see the passes now shift into the attacking third.
+                    This higher percentile of xG for these passes is likely attributed to the fact these passes are now
+                    getting closer to goal and within shooting range.<br></br> Another key fact to note is that the
+                    types of passes are still simple.
+                    We have yet to see a large magnitude of through balls, crosses, or cutbacks.<br></br> We also can
+                    see that these passes are mostly on the ground. We can conclude that this upper middle percentile of
+                    passing sequences are simple sequences that move the ball up the field.
+                </h2>
+            </div>
+            <div class="step" id="step-12">
+                <h2 style="text-align: center">Lastly, we are now looking at the final passes with the highest pass
+                    sequence xG.
+                    These passes may even be the simplest of them all. We see what makes these passes so good is that
+                    they are able to successfully get the ball into the box.<br></br>
+                    We see the highest level of speciality in pass type as we see a spike in through balls, crosses, and
+                    cutbacks. This represents the increase in skill of the passer to be able to thread the ball through
+                    the defense.
+                    <br></br>We also see that while a lot of the passes are on the ground there are a good amount of
+                    passes in the air. This shows how these high probability chances just matter about successfully
+                    getting the ball into the box whether it is on the ground or in the air.
+                </h2>
+            </div>
+            <div class="step" id="step-13">
+                <h2 style="text-align: center">Now you can explore all the final passes of a sequence from the 2024 UEFA
+                    Euro Tournament!</h2>
+                <h2>Adjust the slider to control the percentile of the sequence xG for the final passes
+                    displayed.<br></br>
+                    Toggle the mode to see the passes or heatmap of pass end locations.<br></br>Click on the pie charts,
+                    or legend items, to further filter by pass type and pass height.<br></br>
+                    Lastly, click on the start slider animation to see how these final passes change as the percentile
+                    of the sequence xG increases.<br></br>
+                    Try and answer these questions:
+                </h2>
+                <h3>1. What is the pass type that tends to have the highest pass sequence xG?</h3>
+                <h3>2. What height should you be passing the ball from the middle of the pitch? What about from the
+                    wings?</h3>
+                <h3>3. What area should you be passing the ball to in order to maximize the probability of a goal?</h3>
+            </div>
+            <div class="step" id="step-14">
+                <h2 style="text-align: center">Now that we've have explored how the final pass affects the probability
+                    of a
+                    goal, we can take a look at what types of passes should be performed at each location of the pitch
+                    in
+                    order to maximize the probability of a goal.</h2>
+                <h2><b>Hover</b> over each cell to see the best pass type for that location and what a good pass from
+                    that location would look like.</h2>
+                <br></br>
+                <h3>Looking at this we can separate the pitch naturally into three parts: the defensive third, the
+                    middle third, and the attacking third.
+                    We can see that the main goal of passes in the defensive third should be switches to open up the
+                    defense and create gaps in the midfield.</h3>
+                <h3>In the midfield, the goal is to penetrate
+                    the defense through the use of through balls in order to get the ball near the 18-yard box.</h3>
+                <h3>In the attacking third, a team should focus on cut-backs and crosses to get
+                    the ball into the box for goal scoring opportunities.</h3>
+                </h2>
+            </div>
+            <div class="step" id="step-15">
+                <h2 style="text-align: center">Let's take a look at the top 10 passing sequences that have the highest
+                    probability of leading to a goal.</h2>
+                <h2>Use the arrow buttons below the pitch to navigate through the sequences!</h2>
+                <h3>These sequences are very different, and every pass has lots of variation, except the final pass. In
+                    almost every sequence, the final pass is a cross or ground pass towards the middle of the box. Keep
+                    this in mind!</h3>
+            </div>
+            <div class="step" id="step-16">
+                <h1 style="text-align: center;">Your UEFA Euro Championship Final</h1>
+                <h2 style="text-align: center">Given all the insights we've gathered, how would you approach creating a
+                    successful pass sequence? Try out our game again and see if you can improve your score!</h2>
+                <h2>Check out the leaderboard to see how you rank against the best passing sequences!</h2>
+                <div id="leaderboard"></div>
+            </div>
+        </div>
+    </div>
+    <div class="conclusion">
+        <h1>Conclusion</h1>
+        <h2>
+            In this article, we explored how a sequence of passes can be used to predict the likelihood of scoring a
+            goal — a concept we refer to as pass sequence xG. Using real match data from UEFA Euro 2024, we examined the
+            underlying features of effective passing sequences and how different elements contribute to increasing
+            scoring probability.<br></br>
+
+            A key takeaway from our analysis is the importance of the build-up phase. Far from being just a means of
+            progressing the ball, the build-up creates the foundation for high-quality final passes. We highlighted how
+            switches of play—lateral passes that shift the ball across the pitch—are especially effective in disrupting
+            defensive structures and opening up space between lines. These types of passes consistently raised the pass
+            sequencexG of subsequent actions by forcing defenders to reposition and creating exploitable gaps in the
+            midfield.<br></br>
+
+            We also identified the most dangerous zones on the pitch, offering insight into where players should aim to
+            direct their attacks. Knowing where the threat is highest allows teams to shape their sequences more
+            intelligently and maximize their offensive potential. Additionally, we examined how subtle variations in
+            pass height and type—such as using through balls or lofted passes—can be strategically employed to overcome
+            pressure and unlock better shooting opportunities.<br></br>
+
+            To complement our findings, we’ve provided interactive tools that allow you to explore the influence of the
+            final pass on a sequence’s xG. You can also build your own custom sequences to see how different
+            combinations affect pass sequence xG. We invite you to dive in, experiment with different setups, and even
+            analyze real moments from matches you watch. The next time you see a passing move unfold, consider what made
+            it effective—or why it fell short—and use our model to test your observations.<br></br>
+
+            Through this lens, we hope you gain a deeper appreciation of the strategy behind every pass and develop a
+            new way to think about the beautiful game.
+        </h2>
+        <!-- <h2>We hope you enjoyed this article and learned something new! If you have any questions or feedback, please
+            reach out to us at <a href="mailto:tritonball@ucsd.edu">tritonball@ucsd.edu</a>.</h2> -->
+    </div>
+        <div class="appendix" id="appendix" style="display: block;">
+        <a href="#step-2" class="return-button">return to top</a>
+        <h1>Appendix</h1>
+
+        <div id="type-passes">
+            <h2>Types of passes</h2>
+            <div id="learning-container"></div>
+        </div>
+    </div>
+</body>
+
+</html>

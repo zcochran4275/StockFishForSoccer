@@ -1,0 +1,39 @@
+[
+  {
+    "outcome": 1.0,
+    "start": [75.4, 4.4],
+    "end": [60.7, 6.1],
+    "type": "Pass",
+    "height": 0.0
+  },
+  {
+    "outcome": 1.0,
+    "start": [56.2, 6.6],
+    "end": [46.7, 24.7],
+    "type": "Pass",
+    "height": 0.0
+  },
+  {
+    "outcome": 1.0,
+    "start": [45.3, 35.6],
+    "end": [51.5, 48.9],
+    "type": "Pass",
+    "height": 0.0
+  },
+
+  {
+    "outcome": 1.0,
+    "start": [54.5, 49.2],
+    "end": [80.0, 40.8],
+    "type": "Pass",
+    "height": 0.0
+  },
+
+  {
+    "outcome": 0.0,
+    "start": [85.3, 34.5],
+    "end": [91.5, 43.6],
+    "type": "Pass",
+    "height": 0.0
+  }
+]

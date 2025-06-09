@@ -1,0 +1,53 @@
+{"option1":{
+    "outcome": 1.0,
+    "start": [
+      85.3,
+      34.5
+    ],
+    "end": [
+      107,
+      12
+    ],
+    "type": "Through Ball",
+    "height": 0.0
+  },
+  "option2":{
+    "outcome": 1.0,
+    "start": [
+        85.3,
+        34.5
+    ],
+    "end": [
+      103,
+      38
+    ],
+    "type": "Through Ball",
+    "height": 0.0
+  },
+  "option3":{
+    "outcome": 1.0,
+    "start": [
+        85.3,
+        34.5
+    ],
+    "end": [
+      84,
+      44
+    ],
+    "type": "Pass",
+    "height": 0.0
+  },
+  "option4":{
+    "outcome": 1.0,
+    "start": [
+        85.3,
+        34.5
+    ],
+    "end": [
+      95,
+      68
+    ],
+    "type": "Pass",
+    "height": 0.0
+  }
+}
