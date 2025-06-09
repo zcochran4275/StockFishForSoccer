@@ -1,0 +1,3 @@
+To use, import the script to the BOTTOM of the HTML file.
+
+Then create a div with id="heatmap" and the heatmap will auto populate.
