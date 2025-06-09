@@ -146,7 +146,7 @@ class websiteInputPreprocessor(BaseEstimator, TransformerMixin):
 
 
 model = xgb.XGBClassifier()
-model.load_model("final_xgb_modelV3.json")
+model.load_model("pass_model_xgb/final_xgb_modelV3.json")
 
 # model = MultiStageModel.load('msm_model')
 
