@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: fastapi-xgb-api
+    env: python
+    plan: free
+    buildCommand: "mkdir -p ~/.ssh && cp /etc/secrets/render_deploy_key ~/.ssh/id_rsa && chmod 600 ~/.ssh/id_rsa && ssh-keyscan github.com >> ~/.ssh/known_hosts && git submodule update --init --recursive && pip install -r requirements.txt"
+    startCommand: "uvicorn app:app --host 0.0.0.0 --port 10000"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10
