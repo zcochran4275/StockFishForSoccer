@@ -3,8 +3,8 @@ services:
     name: stockfish-api
     env: python
     buildCommand: |
-      chmod +x /etc/secrets/git_auth.sh
-      . /etc/secrets/git_auth.sh
-      git submodule update --init --recursive
-      pip install -r requirements.txt
+      chmod +x /etc/secrets/git_auth.sh && \
+    . /etc/secrets/git_auth.sh && \
+    git submodule update --init --recursive && \
+    pip install -r requirements.txt
     startCommand: uvicorn app:app --host=0.0.0.0 --port=10000
