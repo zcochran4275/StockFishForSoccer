@@ -1,15 +1,10 @@
 services:
   - type: web
-    name: stockfish-for-soccer
-    runtime: python
+    name: stockfish-api
+    env: python
     buildCommand: |
-      mkdir -p ~/.ssh
-      cp /etc/secrets/render_deploy_key ~/.ssh/id_rsa
-      chmod 600 ~/.ssh/id_rsa
-      ssh-keyscan github.com >> ~/.ssh/known_hosts
+      chmod +x /etc/secrets/git_auth.sh
+      . /etc/secrets/git_auth.sh
       git submodule update --init --recursive
       pip install -r requirements.txt
     startCommand: uvicorn app:app --host=0.0.0.0 --port=10000
-    secretFiles:
-      - name: render_deploy_key
-        mountPath: /etc/secrets/render_deploy_key
